@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Document</title>
+	<style>
+		*{
+			margin: 0;
+			padding: 0;
+		}
+		ul,li{
+			list-style: none;
+		}
+		.box{
+			width: 790px;
+			height: 340px;
+			margin:100px auto;
+			/*父元素相对定位*/
+			position: relative;
+		}
+		.box img{
+			width: 790px;
+			height: 340px;
+		}
+		.box ul{
+			width: 182px;
+			height: 20px;
+			background: rgba(255,255,255,0.3);
+			border-radius: 20px;
+			/*子元素绝对定位*/
+			position: absolute;
+			left: 50%;
+			bottom: 50px;
+			/*自身向左移动50%*/
+			transform: translateX(-50%);
+		}
+		.box ul li{
+			width: 12px;
+			height: 12px;
+			border-radius: 50%;
+			background: #ffffff;
+			float: left;
+			margin-right: 10px;
+			font-size:0;
+			margin-top: 4px;
+			/*设置鼠标指针为小手*/
+			cursor: pointer;
+		}
+		.box ul li:last-child{
+			margin-right: 0;
+		}
+		.box ul li:first-child{
+			margin-left: 8px;
+		}
+		.box ul li.active{
+			background: #db192a;
+		}
+		/*设置按钮公共样式*/
+		.box .btn{
+			width: 30px;
+			height: 60px;
+			text-align: center;
+			line-height: 60px;
+			background: rgba(0,0,0,0.3);
+			color:#ffffff;
+			/*设置鼠标指针为小手*/
+			cursor: pointer;
+			font-size:20px;
+			/*绝对定位*/
+			position: absolute;
+			top:50%;
+			transform: translateY(-50%);
+			/*隐藏元素*/
+			display: none;
+		}
+		/*当内容被选中后的样式*/
+		.box .btn::selection{
+			/*transparent透明色*/
+			background: transparent;
+		}
+		/*鼠标移上btn上以后的样式*/
+		.box .btn:hover{
+			background: rgba(0,0,0,0.5);
+		}
+		/*鼠标移上box以后,对应的btn出现*/
+		.box:hover .btn{
+			display: block;
+		}
+		.box .left{
+			left: 0;
+		}
+		.box .right{
+			right: 0;
+		}
+	</style>
+	<script type="text/javascript">
+		// 思路:
+		// 1.先让图片定时切换
+		// 2.随着图片在切换,高亮对应的小圆点
+		// 3.鼠标移上图片的时候,停止切换图片;鼠标移出图片上的时候,继续切换图片
+		// 4.鼠标移上某个小圆点的时候,对应小圆点高亮,同时也会停止切换图片,并且马上显示对应的图片
+		// 5.设置左按钮,右按钮的点击事件,可以控制图片切换上一张以及下一张
+
+		window.onload=function(){
+			// 开启定时器
+			var timer = window.setInterval("moveR()",1000);
+
+			// 先获取.box对象
+			var objBox = document.getElementsByClassName('box')[0];
+			// 给.box对象绑定鼠标移上事件
+			objBox.onmouseover=function(){
+				// 停止定时器
+				window.clearInterval(timer);
+			}
+			// 给.box对象绑定鼠标移出事件
+			objBox.onmouseout=function(){
+				// 注意,不要再timer前面再加上val,容易出现一个无法停止定时器的bug
+				timer = window.setInterval("moveR()",1000);
+			}
+
+			// 获取所有的li
+			var objLis = document.getElementsByTagName("li");
+			
+			for(var i=0;i<objLis.length;i++){
+				// 循环给所有li都绑定鼠标移上事件
+				objLis[i].onmouseover=function(){
+					// 先清空所有li的class属性
+					for(var j=0;j<objLis.length;j++){
+						objLis[j].removeAttribute("class");
+					}
+
+					// 当前触发对象加上active类
+					this.className = "active";
+
+					// 找到当前current的值,以及跟li里面内容的对应关系
+					current = this.innerHTML-2;
+					// 执行一次函数,实现马上切换图片
+					moveR();
+				}
+			}
+
+			// 给右按钮绑定单击事件
+			var btnRight = document.getElementsByClassName("right")[0];
+			btnRight.onclick=function(){
+				moveR();
+			}
+			// 给左按钮绑定单击事件
+			var btnLeft = document.getElementsByClassName("left")[0];
+			btnLeft.onclick=function(){
+				moveL();
+			}
+		}
+
+		// 定义一个保存图片名字的数组
+		var arrImgs = ["1.jpg","2.jpg","3.jpg","4.jpg","5.jpg","6.jpg","7.jpg","8.jpg"];
+		// 定义一个变量,可以决定现在是那张图片
+		var current = 0;
+		// 图片向右切换的函数
+		function moveR(){
+			current++;
+			if(current == 8){
+				current = 0;
+			}
+			// 获取图片对象
+			var objImg = document.getElementById('myImg');
+			objImg.src = "images/"+arrImgs[current];
+
+			// 设置标签的内容  是了查看current当前的值  方便调试
+			// document.title = 'current当前的值为:' +current ;
+
+			// 获取所有的li
+			var objLis = document.getElementsByTagName("li");
+			
+			// 先清空所有li的class属性
+			for(var i=0;i<objLis.length;i++){
+				objLis[i].removeAttribute("class");
+			}
+
+			// 为对应的小圆点加上的active类
+			objLis[current].className = "active";
+		}
+
+		// 图片向左切换的函数
+		function moveL(){
+			// 这里是关键开始
+			current--;
+			if(current == -1){
+				current = 7;
+			}
+			// 这里是关键结束
+
+
+			// 获取图片对象
+			var objImg = document.getElementById('myImg');
+			objImg.src = "images/"+arrImgs[current];
+
+			// 设置标签的内容  是了查看current当前的值  方便调试
+			document.title = 'current当前的值为:' +current ;
+
+			// 获取所有的li
+			var objLis = document.getElementsByTagName("li");
+			
+			// 先清空所有li的class属性
+			for(var i=0;i<objLis.length;i++){
+				objLis[i].removeAttribute("class");
+			}
+
+			// 为对应的小圆点加上的active类
+			objLis[current].className = "active";
+		}
+	</script>
+</head>
+<body>
+	<div class="box">
+		<img src="images/1.jpg" id="myImg">
+
+		<ul>
+			<li class='active'>1</li>
+			<li>2</li>
+			<li>3</li>
+			<li>4</li>
+			<li>5</li>
+			<li>6</li>
+			<li>7</li>
+			<li>8</li>
+		</ul>
+
+		<div class="left btn">&lt;</div>
+		<div class="right btn">&gt;</div>
+	</div>
+</body>
+</html>
